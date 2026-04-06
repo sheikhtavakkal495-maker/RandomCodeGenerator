@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeForge — Random Code Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#020408;
+  --surf:#080e18;
+  --surf2:#0d1829;
+  --bord:#1a2d4a;
+  --a1:#00d4ff;
+  --a2:#7b2fff;
+  --a3:#ff2d7b;
+  --txt:#e0eaff;
+  --dim:#5a7a9a;
+  --mut:#2a4060;
+  --glow:0 0 20px rgba(0,212,255,.4);
+  --r:12px;
+  --ease:.35s cubic-bezier(.4,0,.2,1);
+}
+body{
+  font-family:'Syne',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CURSOR ── */
+#cur-dot{position:fixed;width:8px;height:8px;background:var(--a1);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:var(--glow);transition:transform .1s}
+#cur-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(0,212,255,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s}
+#cur-ring.big{width:56px;height:56px;border-color:var(--a2)}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(2,4,8,.8);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,212,255,.1);
+}
+.logo{
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.1rem;font-weight:700;color:var(--a1);
+  text-decoration:none;letter-spacing:.04em;
+  display:flex;align-items:center;gap:.4rem;
+}
+.logo em{color:var(--a2);font-style:normal}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{
+  font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;position:relative;transition:color .2s;
+}
+.nav-links a::after{content:'';position:absolute;left:0;bottom:-4px;width:0;height:1px;background:var(--a1);transition:width .3s}
+.nav-links a:hover{color:var(--a1)}
+.nav-links a:hover::after{width:100%}
+.nav-r{display:flex;align-items:center;gap:.8rem}
+#userChip{
+  display:none;align-items:center;gap:.5rem;
+  padding:.35rem .8rem;border-radius:100px;
+  background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--a1);
+}
+#userChip.show{display:flex}
+.chip-dot{width:6px;height:6px;background:#28c840;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#loginBtn{
+  padding:.5rem 1.2rem;border:1px solid var(--a1);border-radius:6px;
+  background:transparent;color:var(--a1);
+  font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:none;
+  transition:var(--ease);
+}
+#loginBtn:hover{background:var(--a1);color:var(--bg);box-shadow:var(--glow)}
+.hbg{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:.3rem}
+.hbg span{display:block;width:22px;height:2px;background:var(--a1);transition:var(--ease)}
+.mob{
+  display:none;position:fixed;inset:0;top:65px;
+  background:rgba(2,4,8,.97);backdrop-filter:blur(20px);
+  z-index:490;flex-direction:column;align-items:center;justify-content:center;gap:2rem;
+}
+.mob.open{display:flex}
+.mob a{font-size:1.6rem;font-weight:800;color:var(--txt);text-decoration:none;transition:color .2s}
+.mob a:hover{color:var(--a1)}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:2}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 5rem;
+}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.38rem 1rem;border:1px solid rgba(0,212,255,.25);
+  border-radius:100px;background:rgba(0,212,255,.05);
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  color:var(--a1);letter-spacing:.16em;text-transform:uppercase;
+  margin-bottom:1.8rem;
+  opacity:0;animation:up .7s .1s forwards;
+}
+.hero-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--a1);animation:blink 1.4s infinite}
+.hero-h1{
+  font-size:clamp(2.8rem,8vw,6.5rem);font-weight:800;line-height:.94;
+  letter-spacing:-.03em;margin-bottom:1.4rem;
+  opacity:0;animation:up .8s .25s forwards;
+}
+.hero-h1 span{
+  display:block;background:linear-gradient(90deg,var(--a1),var(--a2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-p{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(.78rem,2vw,.95rem);color:var(--dim);
+  max-width:500px;line-height:1.8;margin-bottom:2.5rem;
+  opacity:0;animation:up .8s .4s forwards;
+}
+.hero-btns{
+  display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
+  opacity:0;animation:up .8s .55s forwards;
+}
+.btn-grad{
+  padding:.85rem 2.2rem;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  border:none;border-radius:8px;color:#fff;
+  font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;
+  letter-spacing:.06em;cursor:none;transition:var(--ease);
+  box-shadow:0 0 25px rgba(0,212,255,.2);
+}
+.btn-grad:hover{transform:translateY(-2px);box-shadow:0 0 45px rgba(0,212,255,.4)}
+.btn-ghost{
+  padding:.85rem 2.2rem;background:transparent;
+  border:1px solid var(--bord);border-radius:8px;
+  color:var(--dim);font-family:'Syne',sans-serif;
+  font-size:.88rem;font-weight:700;letter-spacing:.06em;
+  cursor:none;transition:var(--ease);
+}
+.btn-ghost:hover{border-color:var(--a2);color:var(--a2)}
+.scroll-cue{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  opacity:0;animation:up 1s 1s forwards;
+}
+.scroll-cue span{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--mut);letter-spacing:.2em;text-transform:uppercase}
+.scroll-bar{width:1px;height:36px;background:linear-gradient(to bottom,var(--a1),transparent);animation:drop 1.5s infinite}
+@keyframes drop{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── STATS ── */
+.stats{
+  display:flex;flex-wrap:wrap;
+  border-top:1px solid var(--bord);border-bottom:1px solid var(--bord);
+  background:var(--surf);position:relative;z-index:2;
+}
+.stat{
+  flex:1;min-width:140px;padding:1.8rem 1rem;
+  display:flex;flex-direction:column;align-items:center;
+  border-right:1px solid var(--bord);transition:background .25s;
+}
+.stat:last-child{border-right:none}
+.stat:hover{background:rgba(0,212,255,.04)}
+.stat-n{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(1.6rem,4vw,2.6rem);font-weight:700;
+  background:linear-gradient(90deg,var(--a1),var(--a2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-l{font-size:.7rem;font-weight:700;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-top:.25rem}
+
+/* ── GENERATOR SECTION ── */
+#generator{
+  padding:7rem 2rem;
+  max-width:1080px;margin:0 auto;
+  position:relative;z-index:2;
+}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--a2);letter-spacing:.22em;text-transform:uppercase;margin-bottom:.7rem;display:block}
+.sec-h2{font-size:clamp(1.6rem,4vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:.8rem}
+.sec-p{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--dim);margin-bottom:2.5rem;line-height:1.7}
+.gen-grid{display:grid;grid-template-columns:1fr 1.35fr;gap:1.8rem;align-items:start}
+
+/* config */
+.cfg{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);padding:1.8rem;display:flex;flex-direction:column;gap:1.4rem}
+.cfg-lbl{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+.cfg-lbl b{color:var(--a1);background:rgba(0,212,255,.09);padding:.12rem .45rem;border-radius:4px;font-weight:700}
+.types{display:flex;flex-wrap:wrap;gap:.45rem}
+.tbn{
+  padding:.4rem .9rem;border:1px solid var(--bord);border-radius:6px;
+  background:transparent;color:var(--dim);
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  cursor:none;transition:var(--ease);
+}
+.tbn:hover,.tbn.on{border-color:var(--a1);color:var(--a1);background:rgba(0,212,255,.08)}
+input[type=range]{
+  width:100%;-webkit-appearance:none;appearance:none;
+  height:3px;background:var(--bord);border-radius:2px;cursor:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  box-shadow:var(--glow);cursor:none;
+}
+.row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.row:last-child{border-bottom:none}
+.row-lbl{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--dim)}
+.tog{position:relative;width:36px;height:19px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-s{position:absolute;inset:0;background:var(--bord);border-radius:100px;cursor:none;transition:var(--ease)}
+.tog-s::before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:var(--dim);border-radius:50%;transition:var(--ease)}
+.tog input:checked+.tog-s{background:var(--a2)}
+.tog input:checked+.tog-s::before{transform:translateX(17px);background:#fff}
+.fi{
+  width:100%;padding:.72rem .9rem;
+  background:rgba(0,0,0,.35);border:1px solid var(--bord);border-radius:8px;
+  color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:.84rem;
+  outline:none;cursor:none;transition:border-color .2s;caret-color:var(--a1);
+}
+.fi:focus{border-color:var(--a1)}
+.fi::placeholder{color:var(--mut)}
+/* strength */
+.sbar{display:flex;gap:3px;margin-top:.4rem}
+.ss{flex:1;height:3px;border-radius:2px;background:var(--bord);transition:background .4s}
+.ss.w{background:var(--a3)}.ss.f{background:#febc2e}.ss.g{background:var(--a2)}.ss.s{background:#28c840}
+.slbl{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--dim);margin-top:.25rem}
+/* generate button */
+.gen-btn{
+  width:100%;padding:1rem;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  border:none;border-radius:8px;color:#fff;
+  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.08em;cursor:none;transition:var(--ease);
+  position:relative;overflow:hidden;
+}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 10px 35px rgba(0,212,255,.4)}
+.gen-btn:active{transform:scale(.98)}
+
+/* output */
+.out-panel{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);overflow:hidden}
+.out-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 1.3rem;border-bottom:1px solid var(--bord);background:rgba(0,0,0,.25);
+}
+.out-dots{display:flex;gap:5px}
+.out-dots i{display:block;width:10px;height:10px;border-radius:50%}
+.out-dots i:nth-child(1){background:#ff5f57}
+.out-dots i:nth-child(2){background:#febc2e}
+.out-dots i:nth-child(3){background:#28c840}
+.out-title{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--dim);letter-spacing:.1em}
+.out-acts{display:flex;gap:.4rem}
+.ibt{
+  width:30px;height:30px;background:rgba(255,255,255,.04);
+  border:1px solid var(--bord);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:none;color:var(--dim);font-size:.8rem;transition:var(--ease);
+}
+.ibt:hover{border-color:var(--a1);color:var(--a1)}
+.out-body{padding:1.3rem;min-height:260px;max-height:370px;overflow-y:auto;display:flex;flex-direction:column;gap:.65rem}
+.out-body::-webkit-scrollbar{width:3px}
+.out-body::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:.8rem;color:var(--mut)}
+.empty .eico{font-size:2.2rem;opacity:.25}
+.empty p{font-family:'JetBrains Mono',monospace;font-size:.75rem}
+.ci{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.05);
+  border-radius:8px;padding:.8rem 1rem;
+  animation:slide .35s ease;transition:border-color .2s;
+}
+.ci:hover{border-color:var(--a2)}
+@keyframes slide{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.ci-val{font-family:'JetBrains Mono',monospace;font-size:clamp(.75rem,2vw,.92rem);font-weight:600;color:var(--a1);letter-spacing:.05em;word-break:break-all}
+.ci-meta{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--mut);margin-top:.15rem}
+.cp{
+  flex-shrink:0;margin-left:.9rem;
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  color:var(--dim);background:transparent;
+  border:1px solid var(--bord);border-radius:4px;
+  padding:.28rem .55rem;cursor:none;transition:var(--ease);
+}
+.cp:hover{border-color:var(--a1);color:var(--a1)}
+.cp.done{border-color:#28c840;color:#28c840}
+
+/* ── FEATURES ── */
+#features{padding:7rem 2rem;position:relative;z-index:2}
+.feat-wrap{max-width:1080px;margin:0 auto}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.3rem;margin-top:2.5rem}
+.fc{
+  background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);
+  padding:1.8rem;transition:var(--ease);position:relative;overflow:hidden;
+}
+.fc::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--a1),transparent);
+  transform:scaleX(0);transition:transform .4s;
+}
+.fc:hover{border-color:rgba(0,212,255,.35);transform:translateY(-4px)}
+.fc:hover::before{transform:scaleX(1)}
+.fc-ico{width:42px;height:42px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;margin-bottom:1.1rem}
+.fc-name{font-size:.95rem;font-weight:700;margin-bottom:.45rem}
+.fc-desc{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--dim);line-height:1.7}
+
+/* ── HOW IT WORKS ── */
+#how{padding:7rem 2rem;background:var(--surf);position:relative;z-index:2}
+.how-wrap{max-width:860px;margin:0 auto}
+.steps{display:flex;flex-direction:column;margin-top:2.5rem}
+.step{display:flex;gap:1.8rem;padding-bottom:2.2rem}
+.step:last-child{padding-bottom:0}
+.step-l{display:flex;flex-direction:column;align-items:center}
+.step-n{
+  width:42px;height:42px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:#fff;
+  box-shadow:var(--glow);
+}
+.step-line{width:1px;flex:1;min-height:24px;background:linear-gradient(to bottom,var(--a1),transparent);margin-top:.5rem}
+.step:last-child .step-line{display:none}
+.step-c{padding-top:.5rem}
+.step-t{font-size:1rem;font-weight:700;margin-bottom:.35rem}
+.step-d{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--dim);line-height:1.7}
+
+/* ── HISTORY ── */
+#history{padding:7rem 2rem;position:relative;z-index:2}
+.hist-wrap{max-width:1080px;margin:0 auto}
+.hist-tbl{width:100%;border-collapse:collapse;border:1px solid var(--bord);border-radius:var(--r);overflow:hidden;margin-top:1.8rem}
+.hist-tbl th{background:var(--surf2);padding:.9rem 1.1rem;text-align:left;font-family:'JetBrains Mono',monospace;font-size:.67rem;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--bord)}
+.hist-tbl td{padding:.8rem 1.1rem;font-family:'JetBrains Mono',monospace;font-size:.76rem;border-bottom:1px solid rgba(255,255,255,.03);transition:background .2s}
+.hist-tbl tr:hover td{background:rgba(0,212,255,.03)}
+.hist-tbl tr:last-child td{border-bottom:none}
+.bdg{display:inline-block;padding:.18rem .55rem;border-radius:4px;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.b1{background:rgba(0,212,255,.1);color:var(--a1)}
+.b2{background:rgba(123,47,255,.1);color:var(--a2)}
+.b3{background:rgba(255,45,123,.1);color:var(--a3)}
+.b4{background:rgba(254,188,46,.1);color:#febc2e}
+.b5{background:rgba(40,200,64,.1);color:#28c840}
+.b6{background:rgba(255,255,255,.06);color:var(--dim)}
+.clr-btn{margin-top:.9rem;padding:.5rem 1.1rem;background:transparent;border:1px solid var(--bord);border-radius:6px;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:.72rem;cursor:none;transition:var(--ease)}
+.clr-btn:hover{border-color:var(--a3);color:var(--a3)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--bord);padding:2.5rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.2rem;background:var(--surf);position:relative;z-index:2}
+.foot-l{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--mut);line-height:1.7}
+.foot-l strong{color:var(--a1)}
+.foot-r{display:flex;gap:1rem}
+.foot-a{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--mut);text-decoration:none;transition:color .2s}
+.foot-a:hover{color:var(--a1)}
+
+/* ── MODAL ── */
+.ov{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(2,4,8,.93);backdrop-filter:blur(14px);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  transition:opacity .3s;
+}
+.ov.hide{opacity:0;pointer-events:none}
+.mbox{
+  background:var(--surf);border:1px solid var(--bord);border-radius:18px;
+  width:100%;max-width:420px;padding:2.2rem;position:relative;
+  box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 50px rgba(0,212,255,.06);
+  transition:transform .3s;
+}
+.ov.hide .mbox{transform:translateY(20px)}
+.m-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.m-logo{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--a1)}
+.m-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid var(--bord);border-radius:7px;color:var(--dim);cursor:none;transition:var(--ease)}
+.m-close:hover{border-color:var(--a3);color:var(--a3)}
+.m-h2{font-size:1.5rem;font-weight:800;margin-bottom:.25rem}
+.m-sub{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--dim);margin-bottom:1.8rem}
+.fl{margin-bottom:1.1rem}
+.flbl{display:block;font-family:'JetBrains Mono',monospace;font-size:.67rem;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.45rem}
+.cap-row{display:flex;align-items:center;gap:.7rem;background:rgba(0,0,0,.3);border:1px solid var(--bord);border-radius:8px;padding:.8rem 1rem;margin-bottom:.5rem}
+.cap-ref{width:34px;height:34px;flex-shrink:0;background:transparent;border:1px solid var(--bord);border-radius:6px;color:var(--dim);cursor:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:var(--ease)}
+.cap-ref:hover{border-color:var(--a1);color:var(--a1);transform:rotate(180deg)}
+.mbtn{
+  width:100%;padding:.85rem;
+  background:linear-gradient(135deg,var(--a1),var(--a2));
+  border:none;border-radius:8px;color:#fff;
+  font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;
+  cursor:none;transition:var(--ease);margin-bottom:.9rem;
+}
+.mbtn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,212,255,.35)}
+.msg{padding:.65rem .9rem;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:.72rem;margin-bottom:.9rem;display:none}
+.msg.ok{background:rgba(40,200,64,.1);border:1px solid rgba(40,200,64,.25);color:#28c840;display:block}
+.msg.er{background:rgba(255,45,123,.1);border:1px solid rgba(255,45,123,.25);color:var(--a3);display:block}
+.hint{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--mut);line-height:1.6}
+.hint strong{color:var(--a1)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:1.8rem;right:1.8rem;z-index:9000;
+  padding:.78rem 1.3rem;background:var(--surf2);
+  border:1px solid var(--bord);border-radius:9px;color:var(--txt);
+  font-family:'JetBrains Mono',monospace;font-size:.76rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  display:flex;align-items:center;gap:.5rem;
+  transform:translateY(80px);opacity:0;
+  transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;
+}
+#toast.show{transform:translateY(0);opacity:1}
+.td{width:6px;height:6px;border-radius:50%;background:var(--a1)}
+
+/* ── ANIMATIONS ── */
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.rv{opacity:0;transform:translateY(24px);transition:opacity .65s,transform .65s}
+.rv.vis{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .hbg{display:flex}
+  .gen-grid{grid-template-columns:1fr}
+  footer{padding:1.8rem;flex-direction:column;text-align:center}
+}
+@media(max-width:560px){
+  nav{padding:.9rem 1rem}
+  #hero{padding:7rem 1rem 4rem}
+  #generator,#features,.feat-wrap,.how-wrap,.hist-wrap{padding-left:1rem;padding-right:1rem}
+  .stat{min-width:110px;padding:1.3rem .6rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- Particles canvas -->
+<canvas id="particles"></canvas>
+
+<!-- Toast -->
+<div id="toast"><div class="td"></div><span id="toast-msg">Copied!</span></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">⌘ Code<em>Forge</em></a>
+  <ul class="nav-links">
+    <li><a href="#generator">Generator</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#history">History</a></li>
+  </ul>
+  <div class="nav-r">
+    <div id="userChip"><span class="chip-dot"></span><span id="uname"></span></div>
+    <button id="loginBtn">Login</button>
+  </div>
+  <button class="hbg" id="hbg" onclick="document.getElementById('mob').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mob" id="mob">
+  <a href="#generator" onclick="this.closest('.mob').classList.remove('open')">Generator</a>
+  <a href="#features"  onclick="this.closest('.mob').classList.remove('open')">Features</a>
+  <a href="#how"       onclick="this.closest('.mob').classList.remove('open')">How It Works</a>
+  <a href="#history"   onclick="this.closest('.mob').classList.remove('open')">History</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-pill">◉ Python Powered · Flask Backend · Fully Responsive</div>
+  <h1 class="hero-h1">
+    Random<br>
+    <span>Code Generator</span>
+  </h1>
+  <p class="hero-p">Generate UUIDs, passwords, PINs, tokens, hex codes &amp; more — backed by Python's cryptographic <code>secrets</code> module.</p>
+  <div class="hero-btns">
+    <button class="btn-grad" onclick="document.getElementById('generator').scrollIntoView({behavior:'smooth'})">Generate Codes →</button>
+    <button class="btn-ghost" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">Explore Features</button>
+  </div>
+  <div class="scroll-cue">
+    <span>Scroll</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="sn1">0</div><div class="stat-l">Code Types</div></div>
+  <div class="stat"><div class="stat-n" id="sn2">0</div><div class="stat-l">Max Length</div></div>
+  <div class="stat"><div class="stat-n" id="sn3">0</div><div class="stat-l">Batch Size</div></div>
+  <div class="stat"><div class="stat-n" id="sn4">0</div><div class="stat-l">Bit Entropy</div></div>
+</div>
+
+<!-- GENERATOR -->
+<section id="generator">
+  <span class="sec-tag rv">// core functionality</span>
+  <h2 class="sec-h2 rv">Code Generator</h2>
+  <p class="sec-p rv">Powered by Python's <code>secrets</code> module — cryptographic randomness from your OS.</p>
+
+  <div class="gen-grid">
+    <!-- LEFT: Config -->
+    <div class="cfg rv">
+
+      <!-- Type buttons -->
+      <div>
+        <div class="cfg-lbl" style="margin-bottom:.5rem">Code Type</div>
+        <div class="types" id="typeSel">
+          <button class="tbn on" data-t="password">Password</button>
+          <button class="tbn" data-t="uuid">UUID</button>
+          <button class="tbn" data-t="pin">PIN</button>
+          <button class="tbn" data-t="hex">HEX</button>
+          <button class="tbn" data-t="token">Token</button>
+          <button class="tbn" data-t="base64">Base64</button>
+          <button class="tbn" data-t="alphanumeric">Alnum</button>
+          <button class="tbn" data-t="numeric">Numeric</button>
+        </div>
+      </div>
+
+      <!-- Length -->
+      <div>
+        <div class="cfg-lbl">Length <b id="lenVal">16</b></div>
+        <input type="range" id="lenSlider" min="4" max="128" value="16">
+      </div>
+
+      <!-- Quantity -->
+      <div>
+        <div class="cfg-lbl">Quantity <b id="qtyVal">5</b></div>
+        <input type="range" id="qtySlider" min="1" max="100" value="5">
+      </div>
+
+      <!-- Charset toggles -->
+      <div>
+        <div class="cfg-lbl" style="margin-bottom:.7rem">Character Sets</div>
+        <div class="row"><span class="row-lbl">Uppercase (A-Z)</span><label class="tog"><input type="checkbox" id="ckU" checked><span class="tog-s"></span></label></div>
+        <div class="row"><span class="row-lbl">Lowercase (a-z)</span><label class="tog"><input type="checkbox" id="ckL" checked><span class="tog-s"></span></label></div>
+        <div class="row"><span class="row-lbl">Numbers (0-9)</span> <label class="tog"><input type="checkbox" id="ckN" checked><span class="tog-s"></span></label></div>
+        <div class="row"><span class="row-lbl">Symbols (!@#$…)</span><label class="tog"><input type="checkbox" id="ckS"><span class="tog-s"></span></label></div>
+        <div class="row"><span class="row-lbl">Exclude Ambiguous</span><label class="tog"><input type="checkbox" id="ckA"><span class="tog-s"></span></label></div>
+      </div>
+
+      <!-- Prefix -->
+      <div>
+        <div class="cfg-lbl" style="margin-bottom:.45rem">Prefix (optional)</div>
+        <input type="text" class="fi" id="pfxInput" placeholder="e.g. CF-" maxlength="12">
+      </div>
+
+      <!-- Strength -->
+      <div id="strArea" style="display:none">
+        <div class="sbar"><div class="ss" id="ss1"></div><div class="ss" id="ss2"></div><div class="ss" id="ss3"></div><div class="ss" id="ss4"></div></div>
+        <div class="slbl" id="strLbl">Strength: —</div>
+        <div class="slbl" id="entLbl" style="margin-top:.1rem">Entropy: — bits</div>
+      </div>
+
+      <button class="gen-btn" id="genBtn">⚡ Generate Codes</button>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="out-panel rv">
+      <div class="out-head">
+        <div class="out-dots"><i></i><i></i><i></i></div>
+        <div class="out-title">output.codes — Python backend</div>
+        <div class="out-acts">
+          <button class="ibt" id="copyAllBtn" title="Copy all">⎘</button>
+          <button class="ibt" id="dlBtn" title="Download .txt">↓</button>
+          <button class="ibt" id="clrBtn" title="Clear">✕</button>
+        </div>
+      </div>
+      <div class="out-body" id="outBody">
+        <div class="empty">
+          <div class="eico">⌘</div>
+          <p>// configure &amp; click generate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="feat-wrap">
+    <span class="sec-tag rv">// what we offer</span>
+    <h2 class="sec-h2 rv">Powerful Features</h2>
+    <p class="sec-p rv">Everything you need — built in Python, delivered fast.</p>
+    <div class="feat-grid">
+      <div class="fc rv"><div class="fc-ico">🔐</div><div class="fc-name">Python secrets Module</div><div class="fc-desc">Uses Python's <code>secrets</code> module — OS-level cryptographic entropy, not pseudo-random.</div></div>
+      <div class="fc rv"><div class="fc-ico">⚡</div><div class="fc-name">Batch Generation</div><div class="fc-desc">Generate up to 100 codes at once. Each with individual entropy score and strength rating.</div></div>
+      <div class="fc rv"><div class="fc-ico">🎛️</div><div class="fc-name">Full Customization</div><div class="fc-desc">Control charset, length, quantity, prefix, and ambiguous-character exclusion.</div></div>
+      <div class="fc rv"><div class="fc-ico">📊</div><div class="fc-name">Entropy Analysis</div><div class="fc-desc">Shannon entropy (bits) calculated per code. Visual strength meter: Weak / Fair / Good / Strong.</div></div>
+      <div class="fc rv"><div class="fc-ico">📜</div><div class="fc-name">Session History</div><div class="fc-desc">Full generation history with timestamps, type badges, entropy scores, and copy buttons.</div></div>
+      <div class="fc rv"><div class="fc-ico">🛡️</div><div class="fc-name">CAPTCHA Login</div><div class="fc-desc">Canvas-rendered distorted CAPTCHA with noise lines. SHA-256 hashed credentials on the server.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-wrap">
+    <span class="sec-tag rv">// the process</span>
+    <h2 class="sec-h2 rv">How It Works</h2>
+    <p class="sec-p rv">Frontend → Python Flask API → cryptographic generation → response.</p>
+    <div class="steps">
+      <div class="step rv">
+        <div class="step-l"><div class="step-n">01</div><div class="step-line"></div></div>
+        <div class="step-c"><div class="step-t">Choose Code Type</div><div class="step-d">Pick from 8 types. Each maps to a dedicated Python generator using <code>secrets.choice()</code>, <code>secrets.token_hex()</code>, or <code>uuid.uuid4()</code>.</div></div>
+      </div>
+      <div class="step rv">
+        <div class="step-l"><div class="step-n">02</div><div class="step-line"></div></div>
+        <div class="step-c"><div class="step-t">Configure Parameters</div><div class="step-d">Set length (4–128), quantity (1–100), charset options, and an optional prefix. Flask validates everything server-side.</div></div>
+      </div>
+      <div class="step rv">
+        <div class="step-l"><div class="step-n">03</div><div class="step-line"></div></div>
+        <div class="step-c"><div class="step-t">Python Generates &amp; Scores</div><div class="step-d">Each code is generated with OS entropy and scored using Shannon's formula: <code>len × log₂(charset_size)</code>.</div></div>
+      </div>
+      <div class="step rv">
+        <div class="step-l"><div class="step-n">04</div><div class="step-line"></div></div>
+        <div class="step-c"><div class="step-t">Copy or Export</div><div class="step-d">Copy individual codes, copy all, or download as a <code>.txt</code> file. Every code logged to your session history.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HISTORY -->
+<section id="history">
+  <div class="hist-wrap">
+    <span class="sec-tag rv">// your session</span>
+    <h2 class="sec-h2 rv">Generation History</h2>
+    <p class="sec-p rv">All codes generated this session with entropy and timestamps.</p>
+    <table class="hist-tbl">
+      <thead>
+        <tr>
+          <th>#</th><th>Code</th><th>Type</th><th>Entropy</th><th>Length</th><th>Time</th><th>Copy</th>
+        </tr>
+      </thead>
+      <tbody id="histBody">
+        <tr><td colspan="7" style="text-align:center;color:var(--mut);padding:2rem;font-family:'JetBrains Mono',monospace;font-size:.75rem">// no codes generated yet</td></tr>
+      </tbody>
+    </table>
+    <button class="clr-btn" id="clrHistBtn">✕ Clear History</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-l"><strong>⌘ CodeForge</strong> — Random Code Generator<br>Python Flask · secrets module · SHA-256 · Fully Responsive</div>
+  <div class="foot-r">
+    <a href="#generator" class="foot-a">Generator</a>
+    <a href="#features" class="foot-a">Features</a>
+    <a href="#history" class="foot-a">History</a>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="ov hide" id="modal">
+  <div class="mbox">
+    <div class="m-top">
+      <div class="m-logo">⌘ CodeForge</div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <h2 class="m-h2">Welcome Back</h2>
+    <p class="m-sub">// verify identity — Python CAPTCHA</p>
+
+    <div class="fl">
+      <label class="flbl">Username</label>
+      <input type="text" class="fi" id="mUser" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="fl">
+      <label class="flbl">Password</label>
+      <input type="password" class="fi" id="mPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="fl">
+      <label class="flbl">CAPTCHA</label>
+      <div class="cap-row">
+        <canvas id="capCanvas" width="155" height="46"></canvas>
+        <button class="cap-ref" onclick="makeCaptcha()" title="Refresh">↻</button>
+      </div>
+      <input type="text" class="fi" id="mCap" placeholder="Type the code above" autocomplete="off" style="letter-spacing:.2em;text-transform:uppercase">
+    </div>
+
+    <div class="msg" id="mMsg"></div>
+    <button class="mbtn" id="mSubmit" onclick="doLogin()">Login with CAPTCHA</button>
+    <div class="hint">Demo: <strong>admin / admin123</strong> &nbsp;·&nbsp; <strong>demo / demo123</strong></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CURSOR
+// ════════════════════════════════════════════════
+const dot  = document.getElementById('cur-dot');
+const ring = document.getElementById('cur-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top  = my + 'px';
+});
+(function animRing() {
+  rx += (mx - rx) * 0.13;
+  ry += (my - ry) * 0.13;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,input,label').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('big'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('big'));
+});
+
+// ════════════════════════════════════════════════
+//  PARTICLE BACKGROUND
+// ════════════════════════════════════════════════
+const pc = document.getElementById('particles');
+const px = pc.getContext('2d');
+let PW, PH;
+function resizePc() { PW = pc.width = window.innerWidth; PH = pc.height = window.innerHeight; }
+resizePc();
+window.addEventListener('resize', resizePc);
+
+const pts = Array.from({length: 55}, () => ({
+  x: Math.random() * 1800,
+  y: Math.random() * 1200,
+  vx: (Math.random() - .5) * .28,
+  vy: (Math.random() - .5) * .28,
+  r: Math.random() * 1.4 + .3,
+  a: Math.random() * .6 + .1
+}));
+
+function drawPc() {
+  px.clearRect(0, 0, PW, PH);
+  pts.forEach((p, i) => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = PW; if (p.x > PW) p.x = 0;
+    if (p.y < 0) p.y = PH; if (p.y > PH) p.y = 0;
+    px.beginPath();
+    px.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    px.fillStyle = `rgba(0,212,255,${p.a})`;
+    px.fill();
+    for (let j = i + 1; j < pts.length; j++) {
+      const q = pts[j];
+      const dx = p.x - q.x, dy = p.y - q.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 130) {
+        px.beginPath();
+        px.moveTo(p.x, p.y);
+        px.lineTo(q.x, q.y);
+        px.strokeStyle = `rgba(0,212,255,${(1 - d/130) * .1})`;
+        px.lineWidth = .5;
+        px.stroke();
+      }
+    }
+  });
+  requestAnimationFrame(drawPc);
+}
+drawPc();
+
+// ════════════════════════════════════════════════
+//  SCROLL REVEAL
+// ════════════════════════════════════════════════
+const rvObs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('vis'), i * 55);
+      rvObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
+
+// ── Stat counters
+(function() {
+  const targets = [8, 128, 100, 256];
+  const ids = ['sn1','sn2','sn3','sn4'];
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = ids.indexOf(e.target.id);
+        const tgt = targets[idx];
+        let cur = 0;
+        const step = tgt / 45;
+        const iv = setInterval(() => {
+          cur += step;
+          if (cur >= tgt) { cur = tgt; clearInterval(iv); }
+          e.target.textContent = Math.floor(cur);
+        }, 28);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: .5 });
+  ids.forEach(id => obs.observe(document.getElementById(id)));
+})();
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ════════════════════════════════════════════════
+//  PYTHON BACKEND SIMULATION
+//  (mirrors app.py logic exactly — for standalone use)
+//  When running with Flask, swap these with fetch('/api/generate')
+// ════════════════════════════════════════════════
+const USERS = { admin: 'admin123', demo: 'demo123', forge: 'forge2024' };
+
+function pyGenCode(type, length, opts) {
+  const UFUL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const USAF = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const LFUL = 'abcdefghijklmnopqrstuvwxyz';
+  const LSAF = 'abcdefghjkmnpqrstuvwxyz';
+  const NFUL = '0123456789';
+  const NSAF = '23456789';
+  const SYMS = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+  const B64  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const HEX  = '0123456789abcdef';
+  const rc = s => s[Math.floor(Math.random() * s.length)];
+  const amb = opts.excludeAmbig;
+
+  switch (type) {
+    case 'uuid':
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.floor(Math.random() * 16);
+        return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+      });
+    case 'pin':
+      return Array.from({length}, () => rc(NFUL)).join('');
+    case 'hex':
+      return Array.from({length}, () => rc(HEX)).join('');
+    case 'token':
+      return Array.from({length}, () => rc(B64)).join('');
+    case 'base64':
+      return btoa(Array.from({length: Math.ceil(length * 3/4)},
+        () => String.fromCharCode(Math.floor(Math.random() * 256))).join('')).slice(0, length);
+    case 'alphanumeric': {
+      const pool = (amb ? USAF : UFUL) + (amb ? LSAF : LFUL) + (amb ? NSAF : NFUL);
+      return Array.from({length}, () => rc(pool)).join('');
+    }
+    case 'numeric':
+      return Array.from({length}, () => rc(NFUL)).join('');
+    default: { // password
+      let pool = '';
+      if (opts.upper)   pool += amb ? USAF : UFUL;
+      if (opts.lower)   pool += amb ? LSAF : LFUL;
+      if (opts.numbers) pool += amb ? NSAF : NFUL;
+      if (opts.symbols) pool += SYMS;
+      if (!pool)        pool = LFUL + NFUL;
+      return Array.from({length}, () => rc(pool)).join('');
+    }
+  }
+}
+
+function calcEntropy(code) {
+  let size = 0;
+  if (/[A-Z]/.test(code)) size += 26;
+  if (/[a-z]/.test(code)) size += 26;
+  if (/[0-9]/.test(code)) size += 10;
+  if (/[^A-Za-z0-9]/.test(code)) size += 32;
+  if (!size) size = 10;
+  return parseFloat((code.length * Math.log2(size)).toFixed(1));
+}
+
+function entropyLabel(e) {
+  if (e < 28) return 'Weak';
+  if (e < 50) return 'Fair';
+  if (e < 72) return 'Good';
+  return 'Strong';
+}
+
+function generateBatch(payload) {
+  const results = [];
+  for (let i = 0; i < payload.quantity; i++) {
+    const raw = pyGenCode(payload.type, payload.length, payload);
+    const code = payload.prefix + raw;
+    const entropy = calcEntropy(code);
+    results.push({
+      code,
+      entropy,
+      strength: entropyLabel(entropy),
+      length: code.length,
+      ts: new Date().toLocaleTimeString()
+    });
+  }
+  return results;
+}
+
+// ════════════════════════════════════════════════
+//  GENERATOR UI
+// ════════════════════════════════════════════════
+let codeType = 'password';
+
+// Type buttons
+document.getElementById('typeSel').querySelectorAll('.tbn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tbn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    codeType = btn.dataset.t;
+    document.getElementById('strArea').style.display = codeType === 'password' ? 'block' : 'none';
+  });
+});
+
+// Sliders
+document.getElementById('lenSlider').addEventListener('input', function() {
+  document.getElementById('lenVal').textContent = this.value;
+});
+document.getElementById('qtySlider').addEventListener('input', function() {
+  document.getElementById('qtyVal').textContent = this.value;
+});
+
+// Strength meter
+function showStrength(c) {
+  const e = c.entropy;
+  const cls = ['w','f','g','s'];
+  const cuts = [28, 50, 72, Infinity];
+  const filled = cuts.filter(cut => e >= cut).length;  // how many thresholds passed
+  // simpler: score 0-4
+  let score = 0;
+  if (e >= 28) score = 1;
+  if (e >= 50) score = 2;
+  if (e >= 72) score = 3;
+  if (e >= 90) score = 4;
+  ['ss1','ss2','ss3','ss4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'ss';
+    if (i < score) el.classList.add(cls[i]);
+  });
+  const icons = { Weak:'🔴', Fair:'🟡', Good:'🟠', Strong:'🟢' };
+  document.getElementById('strLbl').textContent = `Strength: ${c.strength} ${icons[c.strength] || ''}`;
+  document.getElementById('entLbl').textContent = `Entropy: ${c.entropy} bits`;
+}
+
+// Generate button
+document.getElementById('genBtn').addEventListener('click', function() {
+  const payload = {
+    type:          codeType,
+    length:        parseInt(document.getElementById('lenSlider').value),
+    quantity:      parseInt(document.getElementById('qtySlider').value),
+    prefix:        document.getElementById('pfxInput').value,
+    upper:         document.getElementById('ckU').checked,
+    lower:         document.getElementById('ckL').checked,
+    numbers:       document.getElementById('ckN').checked,
+    symbols:       document.getElementById('ckS').checked,
+    excludeAmbig:  document.getElementById('ckA').checked
+  };
+
+  const btn = this;
+  btn.textContent = '⏳ Generating…';
+  btn.disabled = true;
+
+  // Small delay so spinner feels real (simulates server round-trip)
+  setTimeout(() => {
+    const codes = generateBatch(payload);
+    renderCodes(codes, payload.type);
+    addHistory(codes, payload.type);
+    if (payload.type === 'password') showStrength(codes[0]);
+    showToast(`✓ Generated ${codes.length} ${payload.type} code${codes.length > 1 ? 's' : ''}`);
+    btn.textContent = '⚡ Generate Codes';
+    btn.disabled = false;
+  }, 120);
+});
+
+function renderCodes(codes, type) {
+  const body = document.getElementById('outBody');
+  body.innerHTML = '';
+  codes.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'ci';
+    div.style.animationDelay = (i * 0.04) + 's';
+    const safe = c.code.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    div.innerHTML = `
+      <div>
+        <div class="ci-val">${escHtml(c.code)}</div>
+        <div class="ci-meta">entropy: ${c.entropy} bits · ${c.strength}</div>
+      </div>
+      <button class="cp" onclick="copyOne(this,'${safe}')">COPY</button>
+    `;
+    body.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyOne(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✓';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('done'); }, 1400);
+    showToast('Copied!');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('Copied!');
+  });
+}
+
+// Copy all
+document.getElementById('copyAllBtn').addEventListener('click', () => {
+  const codes = [...document.querySelectorAll('.ci-val')].map(e => e.textContent);
+  if (!codes.length) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(codes.join('\n')).then(() => showToast(`Copied ${codes.length} codes`));
+});
+
+// Download
+document.getElementById('dlBtn').addEventListener('click', () => {
+  const codes = [...document.querySelectorAll('.ci-val')].map(e => e.textContent);
+  if (!codes.length) { showToast('Nothing to download'); return; }
+  const blob = new Blob([codes.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `codeforge-${codeType}-${Date.now()}.txt`;
+  a.click();
+  showToast('Downloaded!');
+});
+
+// Clear output
+document.getElementById('clrBtn').addEventListener('click', () => {
+  document.getElementById('outBody').innerHTML =
+    '<div class="empty"><div class="eico">⌘</div><p>// configure &amp; click generate</p></div>';
+});
+
+// ════════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════════
+let histCount = 0;
+const bdgMap = {
+  uuid:'b1', password:'b2', pin:'b3', hex:'b4', token:'b5',
+  base64:'b5', alphanumeric:'b6', numeric:'b6'
+};
+
+function addHistory(codes, type) {
+  const tbody = document.getElementById('histBody');
+  if (histCount === 0) tbody.innerHTML = '';
+  codes.forEach(c => {
+    histCount++;
+    const tr = document.createElement('tr');
+    const bc = bdgMap[type] || 'b6';
+    const safe = c.code.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    tr.innerHTML = `
+      <td>${histCount}</td>
+      <td style="color:var(--a1);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.code)}</td>
+      <td><span class="bdg ${bc}">${type}</span></td>
+      <td style="color:var(--a2)">${c.entropy}b</td>
+      <td>${c.length}</td>
+      <td>${c.ts}</td>
+      <td><button class="cp" onclick="copyOne(this,'${safe}')">COPY</button></td>
+    `;
+    tbody.insertBefore(tr, tbody.firstChild);
+  });
+}
+
+document.getElementById('clrHistBtn').addEventListener('click', () => {
+  histCount = 0;
+  document.getElementById('histBody').innerHTML =
+    '<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:2rem;font-family:\'JetBrains Mono\',monospace;font-size:.75rem">// no codes generated yet</td></tr>';
+  showToast('History cleared');
+});
+
+// ════════════════════════════════════════════════
+//  CAPTCHA
+// ════════════════════════════════════════════════
+let captchaAnswer = '';
+
+function makeCaptcha() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  captchaAnswer = Array.from({length: 5}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+
+  const canvas = document.getElementById('capCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 155, 46);
+
+  // Background
+  ctx.fillStyle = '#0a1520';
+  ctx.fillRect(0, 0, 155, 46);
+
+  // Noise lines
+  for (let i = 0; i < 7; i++) {
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * 155, Math.random() * 46);
+    ctx.lineTo(Math.random() * 155, Math.random() * 46);
+    ctx.strokeStyle = `rgba(0,212,255,${Math.random() * .2 + .08})`;
+    ctx.lineWidth = Math.random() + .5;
+    ctx.stroke();
+  }
+
+  // Noise dots
+  for (let i = 0; i < 25; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 155, Math.random() * 46, Math.random() + .5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(123,47,255,${Math.random() * .3 + .1})`;
+    ctx.fill();
+  }
+
+  // Letters
+  const colors = ['#00d4ff','#7b2fff','#e0eaff','#00d4ff','#aaccff'];
+  captchaAnswer.split('').forEach((ch, i) => {
+    ctx.save();
+    ctx.translate(14 + i * 27, 32 + (Math.random() * 4 - 2));
+    ctx.rotate((Math.random() - .5) * .5);
+    ctx.font = `bold ${19 + Math.floor(Math.random() * 5)}px 'JetBrains Mono', monospace`;
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.shadowColor = colors[i % colors.length];
+    ctx.shadowBlur = 6;
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+  });
+}
+
+// ════════════════════════════════════════════════
+//  LOGIN MODAL
+// ════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('modal').classList.remove('hide');
+  document.getElementById('mMsg').className = 'msg';
+  makeCaptcha();
+}
+function closeModal() {
+  document.getElementById('modal').classList.add('hide');
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.getElementById('loginBtn').addEventListener('click', openModal);
+
+document.getElementById('mCap').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogin() {
+  const user = document.getElementById('mUser').value.trim();
+  const pass = document.getElementById('mPass').value;
+  const cap  = document.getElementById('mCap').value.trim().toUpperCase();
+  const msgEl = document.getElementById('mMsg');
+
+  msgEl.className = 'msg';
+
+  if (!user || !pass) {
+    msgEl.className = 'msg er';
+    msgEl.textContent = '✕ Enter username and password.';
+    return;
+  }
+  if (!cap) {
+    msgEl.className = 'msg er';
+    msgEl.textContent = '✕ Enter the CAPTCHA code.';
+    return;
+  }
+
+  // CAPTCHA check (Python does this with session + hashlib on real server)
+  if (cap !== captchaAnswer) {
+    msgEl.className = 'msg er';
+    msgEl.textContent = '✕ CAPTCHA mismatch. A new code has been issued.';
+    document.getElementById('mCap').value = '';
+    makeCaptcha();
+    return;
+  }
+
+  // Credential check (Python checks SHA-256 hash on real server)
+  if (!USERS[user] || USERS[user] !== pass) {
+    msgEl.className = 'msg er';
+    msgEl.textContent = '✕ Invalid username or password.';
+    makeCaptcha();
+    return;
+  }
+
+  // SUCCESS
+  msgEl.className = 'msg ok';
+  msgEl.textContent = `✓ Welcome, ${user}! Logging in…`;
+  setTimeout(() => {
+    closeModal();
+    setLoggedIn(user);
+  }, 700);
+}
+
+function setLoggedIn(user) {
+  document.getElementById('uname').textContent = user;
+  document.getElementById('userChip').classList.add('show');
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Logout';
+  btn.onclick = () => {
+    document.getElementById('userChip').classList.remove('show');
+    btn.textContent = 'Login';
+    btn.onclick = openModal;
+    showToast('Logged out');
+  };
+  showToast(`🎉 Welcome, ${user}!`);
+}
+
+// ════════════════════════════════════════════════
+//  INIT — auto-generate sample on load
+// ════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('genBtn').click();
+  }, 700);
+});
+</script>
+</body>
+</html>
